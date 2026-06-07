@@ -139,37 +139,66 @@ Follow these steps to **install Prerequisites:**
 
 ```bash
 #!/bin/bash
-# Install all prerequisites
 
-# AWS CLI
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
+set -e
+
+echo "Updating system packages..."
+sudo apt update -y
+sudo apt upgrade -y
+
+echo "Installing required packages..."
+sudo apt install -y curl unzip wget gnupg software-properties-common apt-transport-https ca-certificates lsb-release
+
+# AWS CLI v2
+echo "Installing AWS CLI..."
+curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+unzip -q awscliv2.zip
+sudo ./aws/install --update
+rm -rf aws awscliv2.zip
 
 # Terraform
-curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-sudo apt-get update && sudo apt-get install terraform
+echo "Installing Terraform..."
+wget -qO- https://apt.releases.hashicorp.com/gpg | \
+gpg --dearmor | \
+sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+sudo apt update -y
+sudo apt install -y terraform
 
 # kubectl
-curl -LO "https://dl.k8s.io/release/v1.33.3/bin/linux/amd64/kubectl"
+echo "Installing kubectl..."
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 
 # Docker
+echo "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 
-# Helm
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+sudo usermod -aG docker $USER
 
-# Verify installations
+# Helm
+echo "Installing Helm..."
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+echo ""
+echo "================================="
+echo "Installed Versions"
+echo "================================="
 aws --version
 terraform --version
 kubectl version --client
 docker --version
 helm version
-```
+echo "================================="
+
+echo "Installation completed successfully."
+echo "Log out and log back in for Docker group changes to take effect."
 
 </details>
 
