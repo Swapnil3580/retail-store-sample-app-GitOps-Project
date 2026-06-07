@@ -202,6 +202,8 @@ echo "Log out and log back in for Docker group changes to take effect."
 
 </details>
 
+---sh
+
 
 ## Follow these steps to deploy the application:
 
